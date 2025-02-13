@@ -9,16 +9,12 @@ import (
 	"reflect"
 )
 
-// isTruthy attempts to replicate Python's "if value" truthiness checks.
-// - nil is false
-// - 0, false, "", empty slices/maps are false
-// - Anything else is considered true
+// isTruthy replicates Python's if value checks
 func isTruthy(v interface{}) bool {
 	if v == nil {
 		return false
 	}
 
-	// Use reflection to handle various types more flexibly
 	rv := reflect.ValueOf(v)
 	switch rv.Kind() {
 	case reflect.Bool:
@@ -36,7 +32,7 @@ func isTruthy(v interface{}) bool {
 	case reflect.Map:
 		return rv.Len() != 0
 	default:
-		// For all other types (structs, etc.), treat as true if not nil
+		// For structs etc., treat as true if not nil
 		return true
 	}
 }
@@ -55,21 +51,24 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	maxCapacity := 1000 * 1024 * 1024
+	scanner.Buffer(make([]byte, maxCapacity), maxCapacity)
 
 	fieldCounts := make(map[string]int)
 	totalLines := 0
 
 	for scanner.Scan() {
-		totalLines++
 		line := scanner.Text()
+		totalLines++
 
 		var data map[string]interface{}
 		if err := json.Unmarshal([]byte(line), &data); err != nil {
+			// If the line isn’t valid JSON, skip it
 			log.Printf("Warning: skipping invalid JSON on line %d: %v", totalLines, err)
 			continue
 		}
 
-		// For each field in the JSON object, increment if it has a truthy value
+		// Count truthy fields
 		for field, value := range data {
 			if isTruthy(value) {
 				fieldCounts[field]++
@@ -81,7 +80,7 @@ func main() {
 		log.Fatalf("Error reading file: %v", err)
 	}
 
-	// Compute and print fill rates
+	// Print fill rates
 	for field, count := range fieldCounts {
 		percentage := float64(count) / float64(totalLines) * 100
 		fmt.Printf("%s: %.2f%%\n", field, percentage)
