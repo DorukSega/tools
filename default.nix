@@ -6,18 +6,13 @@ pkgs.stdenv.mkDerivation {
 
   src = ./.;
 
-  buildInputs = [ pkgs.libgcc pkgs.go ];
+  buildInputs = [ pkgs.libgcc ];
 
   buildPhase = ''
     mkdir -p bin
     for src in *.c; do
       prog_name=$(basename $src .c)
       gcc -Wall -Wextra -pedantic -O2 $src -o ./bin/$prog_name
-    done
-    export GOCACHE=/tmp/go-build
-    for src in *.go; do
-      prog_name=$(basename $src .go)
-      go build -o ./bin/$prog_name $src 
     done
   '';
 
