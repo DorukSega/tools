@@ -14,7 +14,7 @@ pkgs.stdenv.mkDerivation {
       prog_name=$(basename $src .c)
       gcc -Wall -Wextra -pedantic -O2 $src -o ./bin/$prog_name
     done
-    cp fillrate.py ./bin/
+    cp fillrate.py ./bin/fillrate
   '';
 
   installPhase = ''
